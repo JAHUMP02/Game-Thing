@@ -1,12 +1,12 @@
 package com.example;
 
 public class Entity {
-	private int x;
-	private int y;
-	private int dx;
-	private int dy;
-	private int exist;
-	private boolean remove=false;
+	protected int x;
+	protected int y;
+	protected int dx;
+	protected int dy;
+	protected int exist;
+	protected boolean remove=false;
 	
 	private int size=10;
 	

@@ -52,6 +52,8 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
     private int bulletDirectionX=0;
 
     private Entity test=new Entity(250,250,0,0,30,0);
+    
+    private Fly fly=new Fly(20,20,1,1,20);
     private int paddleSpeed = 5;
     
     private long timeCurrent=System.currentTimeMillis();
@@ -189,11 +191,15 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         	if(e.checkForRemoval()){
         		markedForRemoval.add(e);
         	}
-        	if(e.getPosition()[0]>=test.getPosition()[0]&&e.getPosition()[0]<=test.getPosition()[0]+test.getSize()&&e.getPosition()[1]+e.getSize()>=test.getPosition()[1]&&e.getPosition()[1]<=test.getPosition()[1]+test.getSize()){
+        	if(e.getPosition()[0]>=fly.position()[0]&&e.getPosition()[0]<=fly.position()[0]+fly.getSize()&&e.getPosition()[1]+e.getSize()>=fly.position()[1]&&e.getPosition()[1]<=fly.position()[1]+fly.getSize()){
         		markedForRemoval.add(e);
         		playerOneScore++;
         	}
         	e.move();
+        }
+        fly.move();
+        if(fly.position()[0]>getWidth()-30||fly.position()[0]<30){
+        	fly.changeDir();
         }
         for(Entity e:markedForRemoval){
         	bullets.remove(e);
@@ -246,7 +252,7 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         
         //Ball
         //g.fillOval(ballX, ballY, diameter, diameter);
-        
+        g.fillOval(fly.position()[0], fly.position()[1], fly.getSize(), fly.getSize());
         g.fillOval(test.getPosition()[0], test.getPosition()[1], test.getSize(), test.getSize());
         
         //Paddles
