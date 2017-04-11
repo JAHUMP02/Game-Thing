@@ -51,15 +51,17 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
     private int bulletDirectionY=1;
     private int bulletDirectionX=0;
 
-    private Entity test=new Entity(250,250,0,0,30,0);
     
-    private Fly fly=new Fly(20,20,1,1,20);
-    private int paddleSpeed = 5;
+    private int paddleSpeed = 2;
     
     private long timeCurrent=System.currentTimeMillis();
+    private long timeCurrent2=System.currentTimeMillis();
 
     private ArrayList<Entity> bullets=new ArrayList<Entity>();
     private ArrayList<Entity> markedForRemoval=new ArrayList<Entity>();
+    
+    private ArrayList<Fly> flies=new ArrayList<Fly>();
+    private ArrayList<Fly> removeFly=new ArrayList<Fly>();
     
     
     //construct a PongPanel
@@ -73,6 +75,7 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         //call step() 60 fps
         Timer timer = new Timer(1000/60, this);
         timer.start();
+        flies.add(new Fly(20,20,1,1,20));
     }
 
 
@@ -106,10 +109,18 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         if(wPressed){
         	bulletDirectionX=0;
         	bulletDirectionY=-1;
+        	if(timeCurrent+500<System.currentTimeMillis()){
+        		bullets.add(new Entity(playerOneX,playerOneY,2*bulletDirectionX,2*bulletDirectionY,10,100));
+        		timeCurrent=System.currentTimeMillis();
+        	}
         }
         if(sPressed){
         	bulletDirectionX=0;
         	bulletDirectionY=1;
+        	if(timeCurrent+500<System.currentTimeMillis()){
+        		bullets.add(new Entity(playerOneX,playerOneY,2*bulletDirectionX,2*bulletDirectionY,10,100));
+        		timeCurrent=System.currentTimeMillis();
+        	}
         }
         if(spacePressed){
         	if(timeCurrent+500<System.currentTimeMillis()){
@@ -120,10 +131,18 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         if(aPressed){
         	bulletDirectionX=-1;
         	bulletDirectionY=0;
+        	if(timeCurrent+500<System.currentTimeMillis()){
+        		bullets.add(new Entity(playerOneX,playerOneY,2*bulletDirectionX,2*bulletDirectionY,10,100));
+        		timeCurrent=System.currentTimeMillis();
+        	}
         }
         if(dPressed){
         	bulletDirectionX=1;
         	bulletDirectionY=0;
+        	if(timeCurrent+500<System.currentTimeMillis()){
+        		bullets.add(new Entity(playerOneX,playerOneY,2*bulletDirectionX,2*bulletDirectionY,10,100));
+        		timeCurrent=System.currentTimeMillis();
+        	}
         }
     	
 
@@ -191,23 +210,46 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         	if(e.checkForRemoval()){
         		markedForRemoval.add(e);
         	}
+        	for(Fly fly:flies){
         	if(e.getPosition()[0]>=fly.position()[0]&&e.getPosition()[0]<=fly.position()[0]+fly.getSize()&&e.getPosition()[1]+e.getSize()>=fly.position()[1]&&e.getPosition()[1]<=fly.position()[1]+fly.getSize()){
         		markedForRemoval.add(e);
-        		playerOneScore++;
+        		fly.changeHealth(1);
+        		if(fly.checkForRemoval()){
+        			removeFly.add(fly);
+        		}
+        	}
         	}
         	e.move();
         }
+        for(Fly fly:flies){
         fly.move();
-        if(fly.position()[0]>getWidth()-30||fly.position()[0]<30){
-        	fly.changeDir();
+        if(fly.position()[0]>getWidth()-30){
+        	fly.changeDir((int)(Math.random()*3)-2,fly.dy);
+        }
+        if(fly.position()[0]<20){
+        	fly.changeDir((int)(Math.random()*3),fly.dy);
+        }
+        if(fly.position()[1]>getHeight()-30){
+        	fly.changeDir(fly.dx, (int)(Math.random()*3)-2);
+        }
+        if(fly.position()[1]<20){
+        	fly.changeDir(fly.dx, (int)(Math.random()*3));
+        }
         }
         for(Entity e:markedForRemoval){
         	bullets.remove(e);
         }
+        for(Fly e:removeFly){
+        	flies.remove(e);
+        }
+        
         //move the ball
         ballX += ballDeltaX;
         ballY += ballDeltaY;
-
+        if(timeCurrent2+10000<System.currentTimeMillis()){
+        	flies.add(new Fly(20,20,1,1,20));
+        	timeCurrent2=System.currentTimeMillis();
+        }
         //stuff has moved, tell this JPanel to repaint itself
     	}
         repaint();
@@ -233,31 +275,32 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         int playerTwoLeft=playerTwoX;
         
         //draw dashed line down the center
-        for(int lineY=0;lineY<getHeight(); lineY+=50){
-        	g.drawLine(250,lineY,250,lineY+25);
-        }
+     //   for(int lineY=0;lineY<getHeight(); lineY+=50){
+     //   	g.drawLine(250,lineY,250,lineY+25);
+     //   }
         g.setColor(Color.green);
         for(Entity e:bullets){
         	g.fillOval(e.getPosition()[0],e.getPosition()[1], e.getSize(), e.getSize());
         }
         g.setColor(Color.WHITE);
         //draw "goal lines"
-        g.drawLine(playerOneRight, 0, playerOneRight, getHeight());
-        g.drawLine(playerTwoLeft, 0, playerTwoLeft, getHeight());
+    //    g.drawLine(playerOneRight, 0, playerOneRight, getHeight());
+    //    g.drawLine(playerTwoLeft, 0, playerTwoLeft, getHeight());
         
         //draw scores
         g.setFont(new Font(Font.DIALOG,Font.BOLD,36));
         g.drawString(String.valueOf(playerOneScore), 100, 100);
-        g.drawString(String.valueOf(playerTwoScore), 400, 100);
+    //    g.drawString(String.valueOf(playerTwoScore), 400, 100);
         
         //Ball
         //g.fillOval(ballX, ballY, diameter, diameter);
+        for(Fly fly:flies){
         g.fillOval(fly.position()[0], fly.position()[1], fly.getSize(), fly.getSize());
-        g.fillOval(test.getPosition()[0], test.getPosition()[1], test.getSize(), test.getSize());
+        }
         
         //Paddles
         g.fillRect(playerOneX, playerOneY, playerOneWidth, playerOneHeight);
-        g.fillRect(playerTwoX, playerTwoY, playerTwoWidth, playerTwoHeight);
+   //     g.fillRect(playerTwoX, playerTwoY, playerTwoWidth, playerTwoHeight);
         }
         else if(gameOver){
         	g.setFont(new Font(Font.DIALOG,Font.BOLD,36));
