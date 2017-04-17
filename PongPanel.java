@@ -37,8 +37,8 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
 
     private int playerOneX = 25;
     private int playerOneY = 250;
-    private int playerOneWidth = 10;
-    private int playerOneHeight = 50;
+    private int playerOneWidth = 20;
+    private int playerOneHeight = 40;
     
     private int playerTwoX=465;
     private int playerTwoY=250;
@@ -50,12 +50,14 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
     
     private int bulletDirectionY=1;
     private int bulletDirectionX=0;
-
     
+    private int health=100;
+
     private int paddleSpeed = 2;
     
     private long timeCurrent=System.currentTimeMillis();
     private long timeCurrent2=System.currentTimeMillis();
+    private long healthTime=System.currentTimeMillis();
 
     private ArrayList<Entity> bullets=new ArrayList<Entity>();
     private ArrayList<Entity> markedForRemoval=new ArrayList<Entity>();
@@ -63,11 +65,12 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
     private ArrayList<Fly> flies=new ArrayList<Fly>();
     private ArrayList<Fly> removeFly=new ArrayList<Fly>();
     
+    private ArrayList<Entity> stuff=new ArrayList<Entity>();
+    
     
     //construct a PongPanel
     public PongPanel(){
         setBackground(Color.BLACK);
-
         //listen to key presses
         setFocusable(true);
         addKeyListener(this);
@@ -76,6 +79,8 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         Timer timer = new Timer(1000/60, this);
         timer.start();
         flies.add(new Fly(20,20,1,1,20));
+        stuff.add(new Zombie());
+    	stuff.add(new Fly(20,20,1,1,20));
     }
 
 
@@ -152,7 +157,6 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         int nextBallRight = ballX + diameter + ballDeltaX;
         int nextBallTop = ballY + ballDeltaY;
         int nextBallBottom = ballY + diameter + ballDeltaY;
-
         int playerOneRight = playerOneX + playerOneWidth;
         int playerOneTop = playerOneY;
         int playerOneBottom = playerOneY + playerOneHeight;
@@ -221,6 +225,9 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         	}
         	e.move();
         }
+        for(Entity e:stuff){
+     	   e.move();
+        }
         for(Fly fly:flies){
         fly.move();
         if(fly.position()[0]>getWidth()-30){
@@ -241,15 +248,26 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         }
         for(Fly e:removeFly){
         	flies.remove(e);
+        	playerOneScore=playerOneScore+1;
         }
-        
+        removeFly.clear();
         //move the ball
         ballX += ballDeltaX;
         ballY += ballDeltaY;
-        if(timeCurrent2+10000<System.currentTimeMillis()){
+        if(timeCurrent2+5000<System.currentTimeMillis()){
         	flies.add(new Fly(20,20,1,1,20));
         	timeCurrent2=System.currentTimeMillis();
         }
+        //Player hit detection
+        for(Fly f:flies){
+        	if(playerOneX>=f.position()[0]&&playerOneX<=f.position()[0]+f.getSize()&&playerOneY+playerOneHeight>=f.position()[1]&&playerOneY<=f.position()[1]+f.getSize()){
+        		if(healthTime+1000<System.currentTimeMillis()){
+        		health=health-10;
+        		healthTime=System.currentTimeMillis();
+        	}
+        	}
+        }
+        System.out.println(flies.size());
         //stuff has moved, tell this JPanel to repaint itself
     	}
         repaint();
@@ -273,7 +291,7 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         
         int playerOneRight=playerOneX+playerOneWidth;
         int playerTwoLeft=playerTwoX;
-        
+        g.fillRect(playerOneX, playerOneY, playerOneWidth, playerOneHeight);
         //draw dashed line down the center
      //   for(int lineY=0;lineY<getHeight(); lineY+=50){
      //   	g.drawLine(250,lineY,250,lineY+25);
@@ -295,13 +313,23 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         //Ball
         //g.fillOval(ballX, ballY, diameter, diameter);
         for(Fly fly:flies){
-        g.fillOval(fly.position()[0], fly.position()[1], fly.getSize(), fly.getSize());
+        	//g.setColor(Color.BLUE);
+           // g.fillRect(fly.position()[0], fly.position()[1], fly.getSize(), fly.getSize());
+            g.setColor(Color.white);
+            g.fillOval(fly.position()[0], fly.position()[1], fly.getSize(), fly.getSize());
+        }
+        for(Entity e:stuff){
+        	g.fillOval(e.x, e.y, e.getSize(), e.getSize());
+        }
+        //Paddles
+        //g.fillRect(playerOneX, playerOneY, playerOneWidth, playerOneHeight);
+   //     g.fillRect(playerTwoX, playerTwoY, playerTwoWidth, playerTwoHeight);
+        
+      //Health
+        g.setColor(Color.red);
+        g.fillRect(470-health, 10, health, 10);
         }
         
-        //Paddles
-        g.fillRect(playerOneX, playerOneY, playerOneWidth, playerOneHeight);
-   //     g.fillRect(playerTwoX, playerTwoY, playerTwoWidth, playerTwoHeight);
-        }
         else if(gameOver){
         	g.setFont(new Font(Font.DIALOG,Font.BOLD,36));
         	g.drawString(String.valueOf(playerOneScore), 100, 100);

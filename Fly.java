@@ -5,7 +5,7 @@ public class Fly extends Entity{
 	private int cy=0;
 	private int change=1;
 	private int radius=50;
-	private int health=5;
+	private int health=1;
 	public Fly(int x,int y,int dx,int dy, int size){
 		super(x, y, dx,dy, size,0);
 	}
@@ -30,7 +30,6 @@ public class Fly extends Entity{
 		int[] i=new int[2];
 		i[0]=x+cx;
 		i[1]=y+cy;
-		System.out.println(i[0]+" "+i[1]);
 		return i;
 	}
 	public void changeHealth(int i){
