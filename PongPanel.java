@@ -48,7 +48,7 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
     private int playerOneScore=0;
     private int playerTwoScore=0;
     
-    private int bulletDirectionY=1;
+    private int bulletDirectionY=0;
     private int bulletDirectionX=0;
     
     private int health=100;
@@ -62,10 +62,18 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
     private ArrayList<Entity> bullets=new ArrayList<Entity>();
     private ArrayList<Entity> markedForRemoval=new ArrayList<Entity>();
     
-    private ArrayList<Fly> flies=new ArrayList<Fly>();
-    private ArrayList<Fly> removeFly=new ArrayList<Fly>();
+    private ArrayList<Entity> newStuff=new ArrayList<Entity>();
     
     private ArrayList<Entity> stuff=new ArrayList<Entity>();
+    
+    private Rooms level;
+    private int xLevel;
+    private int yLevel;
+    
+    private boolean westDoor=false;
+    private boolean eastDoor=false;
+    private boolean northDoor=false;
+    private boolean southDoor=false;
     
     
     //construct a PongPanel
@@ -78,9 +86,23 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         //call step() 60 fps
         Timer timer = new Timer(1000/60, this);
         timer.start();
-        flies.add(new Fly(20,20,1,1,20));
+        
         stuff.add(new Zombie());
     	stuff.add(new Fly(20,20,1,1,20));
+    	stuff.add(new Player(25, 250, 0, 0, 20, 50, 20));
+    	
+    	level=new Rooms();
+    	for(int i=0; i<level.returnRooms().length; i++){
+    		for(int j=0; j<level.returnRooms().length; j++){
+    			if(level.returnRooms()[i][j]!=null){
+    				stuff.addAll(level.returnRooms()[i][j].getEntities());
+    				yLevel=j;
+    				xLevel=i;
+    			}
+    		}
+    	}
+    	
+    	
     }
 
 
@@ -90,32 +112,15 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
 
     public void step(){
     	if(playing){
-    	
-        if (upPressed) {
-            if (playerOneY-paddleSpeed > 0) {
-                playerOneY -= paddleSpeed;
-            }
-        }
-        if (downPressed) {
-            if (playerOneY + paddleSpeed + playerOneHeight < getHeight()) {
-                playerOneY += paddleSpeed;
-            }
-        }
-        if(rightPressed){
-        	if(playerOneX+paddleSpeed+playerOneWidth<getWidth()){
-        		playerOneX+=paddleSpeed;
-        	}
-        }
-        if(leftPressed){
-        	if(playerOneX-paddleSpeed>0){
-        		playerOneX-=paddleSpeed;
-        	}
-        }
+    		
+    		
+    	/*
+        
         if(wPressed){
         	bulletDirectionX=0;
         	bulletDirectionY=-1;
         	if(timeCurrent+500<System.currentTimeMillis()){
-        		bullets.add(new Entity(playerOneX,playerOneY,2*bulletDirectionX,2*bulletDirectionY,10,100));
+        		stuff.add(new Bullet(playerOneX+10,playerOneY,2*bulletDirectionX,2*bulletDirectionY,10,100));
         		timeCurrent=System.currentTimeMillis();
         	}
         }
@@ -123,13 +128,13 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         	bulletDirectionX=0;
         	bulletDirectionY=1;
         	if(timeCurrent+500<System.currentTimeMillis()){
-        		bullets.add(new Entity(playerOneX,playerOneY,2*bulletDirectionX,2*bulletDirectionY,10,100));
+        		stuff.add(new Bullet(playerOneX+10,playerOneY+playerOneHeight,2*bulletDirectionX,2*bulletDirectionY,10,100));
         		timeCurrent=System.currentTimeMillis();
         	}
         }
         if(spacePressed){
         	if(timeCurrent+500<System.currentTimeMillis()){
-        		bullets.add(new Entity(playerOneX,playerOneY,2*bulletDirectionX,2*bulletDirectionY,10,100));
+        		stuff.add(new Bullet(playerOneX,playerOneY,2*bulletDirectionX,2*bulletDirectionY,10,100));
         		timeCurrent=System.currentTimeMillis();
         	}
         }
@@ -137,7 +142,7 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         	bulletDirectionX=-1;
         	bulletDirectionY=0;
         	if(timeCurrent+500<System.currentTimeMillis()){
-        		bullets.add(new Entity(playerOneX,playerOneY,2*bulletDirectionX,2*bulletDirectionY,10,100));
+        		stuff.add(new Bullet(playerOneX,playerOneY,2*bulletDirectionX,2*bulletDirectionY,10,100));
         		timeCurrent=System.currentTimeMillis();
         	}
         }
@@ -145,12 +150,12 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         	bulletDirectionX=1;
         	bulletDirectionY=0;
         	if(timeCurrent+500<System.currentTimeMillis()){
-        		bullets.add(new Entity(playerOneX,playerOneY,2*bulletDirectionX,2*bulletDirectionY,10,100));
+        		stuff.add(new Bullet(playerOneX+playerOneWidth,playerOneY,2*bulletDirectionX,2*bulletDirectionY,10,100));
         		timeCurrent=System.currentTimeMillis();
         	}
         }
-    	
-
+    	*/
+    		
 
         //where will the ball be after it moves?
         int nextBallLeft = ballX + ballDeltaX;
@@ -161,116 +166,161 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         int playerOneTop = playerOneY;
         int playerOneBottom = playerOneY + playerOneHeight;
         
-        float playerTwoLeft=playerTwoX;
-        float playerTwoTop=playerTwoY;
-        float playerTwoBottom=playerTwoY+playerTwoHeight;
+        
+        long timeDamage=System.currentTimeMillis();
 
+        
 
-        //ball bounces off top and bottom of screen
-        if (nextBallTop < 0 || nextBallBottom > getHeight()) {
-            ballDeltaY *= -1;
-        }
-
-        //will the ball go off the left side?
-        if (nextBallLeft < playerOneRight) { 
-            //is it going to miss the paddle?
-            if (nextBallTop > playerOneBottom || nextBallBottom < playerOneTop) {
-
-                /*playerTwoScore++;
-                if(playerTwoScore==3){
-                	playing=false;
-                	gameOver=true;
-                }
-                ballX = 250;
-                ballY = 250;*/
-            }
-            else {
-                ballDeltaX *= -1;
-            }
-        }
-
-        //will the ball go off the right side?
-        if (nextBallRight > playerTwoLeft) { 
-            //is it going to miss the paddle?
-        	if(nextBallTop>playerTwoBottom||nextBallBottom<playerTwoTop){
-        		
-        		/*playerOneScore++;
-        		
-        		if(playerOneScore==3){
-        			playing=false;
-        			gameOver=true;
+        for(Entity e:stuff){
+        	e.move();
+        	for(Entity f:stuff){
+        		if(f!=e){
+        			if(e.checkForCollision(f)){
+        				if(e instanceof Player){
+        					if(!(f instanceof Bullet)){
+        						if(timeDamage+100<System.currentTimeMillis()){
+        							e.changeHealth(1);
+        						}
+        					}
+        				}else
+        					if(e instanceof Bullet){
+        						if(!(f instanceof Player)&&!(f instanceof Bullet)){
+        							e.changeHealth(1);
+        							f.changeHealth(1);
+        						}
+        					}
+        						
+        			}
         		}
-        		ballX=250;
-        		ballY=250;*/
-        	}else{
-        		ballDeltaX*=-1;
+        		if(e instanceof Zombie){
+					if(f instanceof Player){
+						if(f.getPosition()[0]>e.getPosition()[0]){
+							System.out.println("HI");
+							e.changeDir(1, e.dy);
+						}
+						if(f.getPosition()[0]<e.getPosition()[0]){
+							e.changeDir(-1, e.dy);
+						}
+						if(f.getPosition()[1]>e.getPosition()[1]){
+							e.changeDir(e.dx, 1);
+						}
+						if(f.getPosition()[1]<e.getPosition()[1]){
+							e.changeDir(e.dx, -1);
+						}
+					}
+			
+		}
+        	}
+        	
+        	if(e.getPosition()[0]>getWidth()-30){
+    			e.changeDir((int)(Math.random()*3)-2,e.dy);
+    		}
+    		if(e.getPosition()[0]<20){
+    			e.changeDir((int)(Math.random()*3),e.dy);
+    		}
+    		if(e.getPosition()[1]>getHeight()-30){
+    			e.changeDir(e.dx, (int)(Math.random()*3)-2);
+    		}
+    		if(e.getPosition()[1]<20){
+    			e.changeDir(e.dx, (int)(Math.random()*3));
+    		}
+    		
+    		
+    		if(e instanceof Player){
+    			int i=0;
+    			int j=0;
+    			if (upPressed) {
+    				j-=2;
+    				
+    			}
+    			if (downPressed) {
+    				j+=2;
+    				
+    			}
+    			if(rightPressed){
+    				i+=2;
+    			}
+    			if(leftPressed){
+    				i-=2;
+    			}
+    			e.changeDir(i,j);
+    			if(wPressed){
+    				bulletDirectionX=0;
+    				bulletDirectionY=-1;
+    			}
+    			if(sPressed){
+    				bulletDirectionX=0;
+    				bulletDirectionY=1;
+    			}
+    			if(aPressed){
+    				bulletDirectionX=-1;
+    				bulletDirectionY=0;
+    			}
+    			if(dPressed){
+    				bulletDirectionX=1;
+    				bulletDirectionY=0;
+    			}
+    			if(wPressed||sPressed||aPressed||dPressed){
+    				
+    				
+    			if(timeCurrent+500<System.currentTimeMillis()){
+    				newStuff.add(new Bullet(e.getPosition()[0]+10,e.getPosition()[1],2*bulletDirectionX,2*bulletDirectionY,10,100));
+    				timeCurrent=System.currentTimeMillis();
+    			}
+    			}
+    			bulletDirectionX=0;
+    			bulletDirectionY=0;
+    		}
+    		if(e.checkForRemoval()){
+        		markedForRemoval.add(e);
+        	}
+        }
+        for(Entity e:newStuff){
+        	stuff.add(e);
+        }
+        newStuff.clear();
+        for(Entity e:markedForRemoval){
+        	stuff.remove(e);
+        	level.returnRooms()[xLevel][yLevel].removeEntity(e);
+        }
+        markedForRemoval.clear();
+        level.returnRooms()[xLevel][yLevel].checkForCompletion();
+        if(level.returnRooms()[xLevel][yLevel].isUnlocked()){
+        	for(int i=xLevel-1; i<xLevel+1; i++){
+        		for(int j=yLevel-1; j<yLevel+1; j++){
+        			if((i!=0&&j!=0)||(i!=0&&j!=2)||(i!=2&&j!=0)||(i!=2&&j!=2))
+        			try{
+        				if(level.returnRooms()[i][j]!=null){
+        					if(i==0){
+        						northDoor=true;
+        					}
+        					if(i==2){
+        						southDoor=true;
+        					}
+        					if(j==0){
+        						westDoor=true;
+        					}
+        					if(j==2){
+        						eastDoor=true;
+        					}
+        				}
+        			}catch(Exception e){
+        				
+        			}
+        		}
         	}
         }
         
-        for(Entity e:bullets){
-        	if(e.getPosition()[0]>getWidth()){
-        		markedForRemoval.add(e);
-        	}
-        	if(e.checkForRemoval()){
-        		markedForRemoval.add(e);
-        	}
-        	for(Fly fly:flies){
-        	if(e.getPosition()[0]>=fly.position()[0]&&e.getPosition()[0]<=fly.position()[0]+fly.getSize()&&e.getPosition()[1]+e.getSize()>=fly.position()[1]&&e.getPosition()[1]<=fly.position()[1]+fly.getSize()){
-        		markedForRemoval.add(e);
-        		fly.changeHealth(1);
-        		if(fly.checkForRemoval()){
-        			removeFly.add(fly);
-        		}
-        	}
-        	}
-        	e.move();
-        }
-        for(Entity e:stuff){
-     	   e.move();
-        }
-        for(Fly fly:flies){
-        fly.move();
-        if(fly.position()[0]>getWidth()-30){
-        	fly.changeDir((int)(Math.random()*3)-2,fly.dy);
-        }
-        if(fly.position()[0]<20){
-        	fly.changeDir((int)(Math.random()*3),fly.dy);
-        }
-        if(fly.position()[1]>getHeight()-30){
-        	fly.changeDir(fly.dx, (int)(Math.random()*3)-2);
-        }
-        if(fly.position()[1]<20){
-        	fly.changeDir(fly.dx, (int)(Math.random()*3));
-        }
-        }
-        for(Entity e:markedForRemoval){
-        	bullets.remove(e);
-        }
-        for(Fly e:removeFly){
-        	flies.remove(e);
-        	playerOneScore=playerOneScore+1;
-        }
-        removeFly.clear();
-        //move the ball
-        ballX += ballDeltaX;
-        ballY += ballDeltaY;
-        if(timeCurrent2+5000<System.currentTimeMillis()){
-        	flies.add(new Fly(20,20,1,1,20));
+      /*  if(timeCurrent2+5000<System.currentTimeMillis()){
+        	stuff.add(new Fly(20,20,2,2,20));
         	timeCurrent2=System.currentTimeMillis();
-        }
-        //Player hit detection
-        for(Fly f:flies){
-        	if(playerOneX>=f.position()[0]&&playerOneX<=f.position()[0]+f.getSize()&&playerOneY+playerOneHeight>=f.position()[1]&&playerOneY<=f.position()[1]+f.getSize()){
-        		if(healthTime+1000<System.currentTimeMillis()){
-        		health=health-10;
-        		healthTime=System.currentTimeMillis();
-        	}
-        	}
-        }
-        System.out.println(flies.size());
+        }*/
+
+       
+        
         //stuff has moved, tell this JPanel to repaint itself
     	}
-        repaint();
+    	repaint();
     	
     }
 
@@ -291,15 +341,15 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         
         int playerOneRight=playerOneX+playerOneWidth;
         int playerTwoLeft=playerTwoX;
-        g.fillRect(playerOneX, playerOneY, playerOneWidth, playerOneHeight);
+       
         //draw dashed line down the center
      //   for(int lineY=0;lineY<getHeight(); lineY+=50){
      //   	g.drawLine(250,lineY,250,lineY+25);
      //   }
         g.setColor(Color.green);
-        for(Entity e:bullets){
-        	g.fillOval(e.getPosition()[0],e.getPosition()[1], e.getSize(), e.getSize());
-        }
+        //for(Entity e:bullets){
+        //	g.fillOval(e.getPosition()[0],e.getPosition()[1], e.getSize()[0], e.getSize()[1]);
+        //}
         g.setColor(Color.WHITE);
         //draw "goal lines"
     //    g.drawLine(playerOneRight, 0, playerOneRight, getHeight());
@@ -312,14 +362,22 @@ public class PongPanel extends JPanel implements ActionListener, KeyListener{
         
         //Ball
         //g.fillOval(ballX, ballY, diameter, diameter);
-        for(Fly fly:flies){
-        	//g.setColor(Color.BLUE);
-           // g.fillRect(fly.position()[0], fly.position()[1], fly.getSize(), fly.getSize());
-            g.setColor(Color.white);
-            g.fillOval(fly.position()[0], fly.position()[1], fly.getSize(), fly.getSize());
-        }
         for(Entity e:stuff){
-        	g.fillOval(e.x, e.y, e.getSize(), e.getSize());
+        	g.setColor(Color.white);
+        	
+        	if(e instanceof Player){
+        		g.setColor(Color.cyan);
+        		g.fillRect(e.getPosition()[0], e.getPosition()[1], e.getSize()[0], e.getSize()[1]);
+        	}else if(e instanceof Zombie){
+        		g.setColor(Color.pink);
+        		g.fillRect(e.getPosition()[0], e.getPosition()[1], e.getSize()[0], e.getSize()[1]);
+        	}else
+        	 g.fillOval(e.getPosition()[0], e.getPosition()[1], e.getSize()[0], e.getSize()[1]);
+        }
+        
+        g.setColor(Color.gray);
+        if(eastDoor){
+        	
         }
         //Paddles
         //g.fillRect(playerOneX, playerOneY, playerOneWidth, playerOneHeight);

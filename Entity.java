@@ -5,26 +5,24 @@ public class Entity {
 	protected int y;
 	protected int dx;
 	protected int dy;
-	protected int exist;
-	protected boolean remove=false;
+	protected int health;
 	
-	private int size=10;
+	protected int width;
+	protected int height;
 	
-	public Entity(int x,int y,int dx,int dy, int size, int exist){
+	public Entity(int x,int y,int dx,int dy, int width, int height, int health){
 		this.x=x;
 		this.y=y;
 		this.dx=dx;
 		this.dy=dy;
-		this.exist=exist;
-		this.size=size;
+		this.width=width;
+		this.height=height;
+		this.health=health;
 	}
 	public void move(){
 		x+=dx;
 		y+=dy;
-		exist--;
-		if(exist==0){
-			remove=true;
-		}
+		
 	}
 	public int[] getPosition(){
 		int[] i=new int[2];
@@ -32,10 +30,26 @@ public class Entity {
 		i[1]=y;
 		return i;
 	}
-	public boolean checkForRemoval(){
-		return remove;
+	public void changeHealth(int i){
+		health=health-i;
 	}
-	public int getSize(){
-		return size;
+	public boolean checkForRemoval(){
+		return health<=0?true:false;
+	}
+	public int[] getSize(){
+		int[] i=new int[2];
+		i[0]=width;
+		i[1]=height;
+		return i;
+	}
+	public void changeDir(int dx, int dy){
+		this.dx=dx;
+		this.dy=dy;
+	}
+	public boolean checkForCollision(Entity e){
+    	if(e.getPosition()[0]>=this.getPosition()[0]&&e.getPosition()[0]<=this.getPosition()[0]+this.getSize()[0]&&e.getPosition()[1]+e.getSize()[1]>=this.getPosition()[1]&&e.getPosition()[1]<=this.getPosition()[1]+this.getSize()[1]){
+    		return true;
+    	}
+    	return false;
 	}
 }
